@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Cadence</string>
+    <string name="tagline">Plan with intention. Focus without noise.</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="sign_out">Sign out</string>
+    <string name="nav_today">Today</string>
+    <string name="nav_focus">Focus</string>
+    <string name="nav_insights">Insights</string>
+    <string name="add_task">Add task</string>
+    <string name="edit_task">Edit task</string>
+    <string name="new_task">New task</string>
+    <string name="task_title_label">Task title</string>
+    <string name="task_notes_label">Notes (optional)</string>
+    <string name="save_task">Save task</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="empty_tasks_title">Your slate is clear</string>
+    <string name="empty_tasks_subtitle">Add a priority task to build today’s rhythm and track focus sessions.</string>
+    <string name="focus_start">Start focus</string>
+    <string name="focus_pause">Pause</string>
+    <string name="focus_resume">Resume</string>
+    <string name="focus_reset">Reset</string>
+    <string name="focus_log_session">Log session</string>
+    <string name="general_focus">General Focus</string>
+    <string name="retry">Retry</string>
+</resources>

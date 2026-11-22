@@ -1,0 +1,6 @@
+{
+  "name": "Cadence",
+  "description": "A daily tasks and focus planner with Google Sign-In and cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

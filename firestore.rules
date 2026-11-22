@@ -1,0 +1,119 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidCategory(category) {
+      return category is string && category in ['WORK', 'PERSONAL', 'WELLNESS'];
+    }
+
+    function isValidPriority(priority) {
+      return priority is string && priority in ['HIGH', 'NORMAL', 'LOW'];
+    }
+
+    function isValidTask(data) {
+      return data.userId is string &&
+             data.userId.size() >= 1 &&
+             data.userId.size() <= 128 &&
+             data.title is string &&
+             data.title.size() >= 1 &&
+             data.title.size() <= 120 &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 500)) &&
+             isValidCategory(data.category) &&
+             isValidPriority(data.priority) &&
+             data.completed is bool &&
+             data.focusMinutes is int &&
+             data.focusMinutes >= 0 &&
+             data.focusMinutes <= 100000;
+    }
+
+    function isValidFocusSession(data) {
+      return data.userId is string &&
+             data.userId.size() >= 1 &&
+             data.userId.size() <= 128 &&
+             data.taskId is string &&
+             data.taskId.size() <= 128 &&
+             (data.taskId == '' || isValidId(data.taskId)) &&
+             data.taskTitle is string &&
+             data.taskTitle.size() >= 1 &&
+             data.taskTitle.size() <= 120 &&
+             data.durationMinutes is int &&
+             data.durationMinutes >= 1 &&
+             data.durationMinutes <= 180 &&
+             isValidCategory(data.category);
+    }
+
+    match /users/{userId}/tasks/{taskId} {
+      allow get: if isOwner(userId) && isValidId(taskId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(taskId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'title', 'category', 'priority', 'completed', 'focusMinutes', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'title', 'notes', 'category', 'priority', 'completed', 'focusMinutes', 'createdAt', 'updatedAt']) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidTask(incoming());
+
+      allow update: if isOwner(userId) &&
+                       isValidId(taskId) &&
+                       isValidTask(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'notes', 'category', 'priority', 'completed', 'updatedAt']) ||
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['focusMinutes', 'updatedAt']) &&
+                           incoming().focusMinutes > existing().focusMinutes
+                         )
+                       );
+
+      allow delete: if isOwner(userId) && isValidId(taskId);
+    }
+
+    match /users/{userId}/focusSessions/{sessionId} {
+      allow get: if isOwner(userId) && isValidId(sessionId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(sessionId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'taskId', 'taskTitle', 'durationMinutes', 'category', 'completedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'taskId', 'taskTitle', 'durationMinutes', 'category', 'completedAt']) &&
+                       incoming().completedAt is timestamp &&
+                       incoming().completedAt <= request.time &&
+                       isValidFocusSession(incoming());
+
+      allow delete: if isOwner(userId) && isValidId(sessionId);
+    }
+  }
+}

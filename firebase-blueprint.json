@@ -1,0 +1,116 @@
+{
+  "entities": {
+    "TaskItem": {
+      "title": "TaskItem",
+      "description": "A prioritized daily task belonging to an authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the task owner."
+        },
+        "title": {
+          "type": "string",
+          "description": "Short task title (1 to 120 characters)."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional task notes (up to 500 characters)."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["WORK", "PERSONAL", "WELLNESS"],
+          "description": "Task category."
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["HIGH", "NORMAL", "LOW"],
+          "description": "Task priority level."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether the task is completed."
+        },
+        "focusMinutes": {
+          "type": "integer",
+          "description": "Accumulated focus session minutes spent on this task."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server-assigned creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server-assigned update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "category",
+        "priority",
+        "completed",
+        "focusMinutes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FocusSession": {
+      "title": "FocusSession",
+      "description": "A completed focus timer interval logged by an authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the user who completed the focus session."
+        },
+        "taskId": {
+          "type": "string",
+          "description": "Linked task document ID, or empty string for general focus."
+        },
+        "taskTitle": {
+          "type": "string",
+          "description": "Snapshot title of the focused task or General Focus."
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "description": "Duration of the focus block in minutes (1 to 180)."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["WORK", "PERSONAL", "WELLNESS"],
+          "description": "Category associated with the focus session."
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server-assigned completion timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "taskId",
+        "taskTitle",
+        "durationMinutes",
+        "category",
+        "completedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": {
+        "$ref": "#/entities/TaskItem"
+      },
+      "description": "User-scoped daily tasks collection."
+    },
+    "/users/{userId}/focusSessions/{sessionId}": {
+      "schema": {
+        "$ref": "#/entities/FocusSession"
+      },
+      "description": "User-scoped completed focus sessions log."
+    }
+  }
+}
